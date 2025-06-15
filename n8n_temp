@@ -1,0 +1,1195 @@
+{
+  "name": "Find leads and get phone numbers - template",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -40,
+        0
+      ],
+      "id": "359ed4dc-11a4-46c3-8bcd-a94b62da87c5",
+      "name": "When chat message received",
+      "webhookId": "2265b38e-f7df-4b48-8468-4de2daa7fbc9"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        220
+      ],
+      "id": "40f6a761-f207-4c80-a614-0a76bdf34476",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "eJdMj3whZ55mhnWO",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"jobTitle\": \"CEO\",\n\t\"location\": \"Los Angeles\",\n     \"industry\":\"Real estate\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        220
+      ],
+      "id": "7c89cbda-a483-470a-b7b2-fd3510da5c01",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        280,
+        220
+      ],
+      "id": "64ddcfc4-f9f0-43f9-9b85-52f06f0c12e5",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "=site:linkedin.com/in  {{ $json.output.jobTitle }} {{ $json.output.location }} {{ $json.output.industry }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "XXX"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        580,
+        0
+      ],
+      "id": "7009bd54-7ebb-4c18-bad4-b18ccf6f019d",
+      "name": "Scrape Google results"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        220,
+        0
+      ],
+      "id": "5a515734-cc4e-472e-b5fa-9477986e0cb8",
+      "name": "AI Agent - Structure chat inputs"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "organic",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        760,
+        0
+      ],
+      "id": "483ea592-6b9e-4c40-bded-1dc6015f18ba",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        980,
+        220
+      ],
+      "id": "76a27bd9-01dd-4428-86e4-338de2cebc7c",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "eJdMj3whZ55mhnWO",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        220
+      ],
+      "id": "604388e2-46d3-47fe-af49-03838fb3cf2b",
+      "name": "Window Buffer Memory1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"match\": true,\n\t\"reason\": \"Not matching because\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        220
+      ],
+      "id": "1434748b-bae7-4b42-8c3b-1e1a85947cff",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw",
+          "mode": "list",
+          "cachedResultName": "AI agent to source leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "JobTitle - keyword": "={{ $('AI Agent - Structure chat inputs').item.json.output.jobTitle }}",
+            "location - Keyword": "={{ $('AI Agent - Structure chat inputs').item.json.output.location }}",
+            "companyIndustry - Keyword": "={{ $('AI Agent - Structure chat inputs').item.json.output.industry }}",
+            "Linkedin result": "={{ $('Split Out').item.json.title }}",
+            "Linkedin preview": "={{ $('Split Out').item.json.snippet }}",
+            "Linkedin location": "={{ $('Split Out').item.json.subtitle }}",
+            "Linkedin profile": "={{ $('Split Out').item.json.link }}",
+            "Match request ? ": "={{ $json.output.match }}",
+            "Reason": "={{ $json.output.reason }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "JobTitle - keyword",
+              "displayName": "JobTitle - keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location - Keyword",
+              "displayName": "location - Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyIndustry - Keyword",
+              "displayName": "companyIndustry - Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin result",
+              "displayName": "Linkedin result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin location",
+              "displayName": "Linkedin location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin preview",
+              "displayName": "Linkedin preview",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin profile",
+              "displayName": "Linkedin profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Match request ? ",
+              "displayName": "Match request ? ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone number",
+              "displayName": "Phone number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1380,
+        0
+      ],
+      "id": "c4a8f5d1-2c67-4d04-aa3c-f4eb200a871c",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5sIkyPucujX6W4XS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "53e4e153-aac0-4a1d-9b84-f113017aa3a4",
+              "leftValue": "={{ $('Check contact matching').item.json.output.match }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "d5dfc066-24c2-4114-a660-3c46e233adda",
+      "name": "Filter matching results only"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1860,
+        220
+      ],
+      "id": "32e20db6-437b-4911-97a4-6560b90cac66",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "eJdMj3whZ55mhnWO",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "{{ $('When chat message received').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2020,
+        220
+      ],
+      "id": "f55469db-952b-4677-9d29-d37edbd037db",
+      "name": "Window Buffer Memory2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"firstName\": \"Tim\",\n\t\"lastName\": \"Cook\",\n    \"company\": \"Apple\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2180,
+        220
+      ],
+      "id": "c51542cb-dd0b-4e51-b946-28276743d04b",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=From these information :  {{ $json['Linkedin result'] }}{{ $json['Linkedin preview'] }} identify 3 data points :\n- firstName : The first name of the contact\n- lastName: The last name of the contact\n- companyName: The company name of the contact",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1920,
+        0
+      ],
+      "id": "6b8b80c7-ac61-4aae-85e0-e5ac778b6bab",
+      "name": "Extract contact info"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Read the text \" {{ $json.title }} {{ $json.subtitle }}\" \n- Identify the location in this text and check if it match with {{ $('AI Agent - Structure chat inputs').item.json.output.location }}\n- Get the most common positions title similar to {{ $('AI Agent - Structure chat inputs').item.json.output.jobTitle }} and check if at least one of these position terms match with the positions you can extract from {{ $json.title }}\n\nIf both are matching return an attribute \"match\" equal to true else return false \nIf not matching return an attribute \"reason\" that explain why ",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1020,
+        0
+      ],
+      "id": "dddbe249-37f8-4925-bf18-7e4b561d0cc1",
+      "name": "Check contact matching"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw",
+          "mode": "list",
+          "cachedResultName": "AI agent to source leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Linkedin profile": "={{ $('Filter matching results only').item.json['Linkedin profile'] }}",
+            "First Name": "={{ $json.output.firstName }}",
+            "Last Name": "={{ $json.output.lastName }}",
+            "Company": "={{ $json.output.company }}"
+          },
+          "matchingColumns": [
+            "Linkedin profile"
+          ],
+          "schema": [
+            {
+              "id": "JobTitle - keyword",
+              "displayName": "JobTitle - keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location - Keyword",
+              "displayName": "location - Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyIndustry - Keyword",
+              "displayName": "companyIndustry - Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin result",
+              "displayName": "Linkedin result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin location",
+              "displayName": "Linkedin location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin preview",
+              "displayName": "Linkedin preview",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin profile",
+              "displayName": "Linkedin profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Match request ? ",
+              "displayName": "Match request ? ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone number",
+              "displayName": "Phone number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2320,
+        0
+      ],
+      "id": "71a1b61f-3c54-47f4-a244-99fcc574c532",
+      "name": "Insert contact data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5sIkyPucujX6W4XS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.bettercontact.rocks/api/v2/async/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "XXX"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"data\": [\n    {  \n      \"first_name\": \"{{ $json['First Name'] }}\",\n      \"last_name\": \"{{ $('Extract contact info').item.json.output.lastName }}\",\n      \"company\":\"{{ $('Extract contact info').item.json.output.company }}\",\n      \"linkedin_url\": \"{{ $json['Linkedin profile'] }}\"\n    }\n  ],\n  \"enrich_phone_number\": true,\n  \"enrich_email_address\": true,\n  \"webhook\": \"https://bettercontact.app.n8n.cloud/webhook/4d0bd2ae-7c96-44f4-843d-aed60408d89c\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2740,
+        0
+      ],
+      "id": "036e5d80-a0ef-4ea9-9591-14d63397c27c",
+      "name": "Get email & phone"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw",
+          "mode": "list",
+          "cachedResultName": "AI agent to source leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cwKrg2b63GKcKqLj_M_QZ9CyiV8eBI1X0YUvdeW-0Rw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone number": "={{ $json.body.data[0].contact_phone_number }}",
+            "Linkedin profile": "={{ $json.body.data[0].contact_linkedin_profile_url }}",
+            "Email": "={{ $json.body.data[0].contact_email_address }}"
+          },
+          "matchingColumns": [
+            "Linkedin profile"
+          ],
+          "schema": [
+            {
+              "id": "JobTitle - keyword",
+              "displayName": "JobTitle - keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "location - Keyword",
+              "displayName": "location - Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyIndustry - Keyword",
+              "displayName": "companyIndustry - Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin result",
+              "displayName": "Linkedin result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin location",
+              "displayName": "Linkedin location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin preview",
+              "displayName": "Linkedin preview",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Linkedin profile",
+              "displayName": "Linkedin profile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Match request ? ",
+              "displayName": "Match request ? ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone number",
+              "displayName": "Phone number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3240,
+        0
+      ],
+      "id": "0143a032-e1f2-4b0e-8d40-f73d57f717d7",
+      "name": "Add email and phone to contacts",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5sIkyPucujX6W4XS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Get email and phone number",
+        "height": 460,
+        "width": 820,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        -80
+      ],
+      "id": "bbdf2ea2-b259-4f81-8f7a-78d5b0b5e0e8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Identify leads",
+        "height": 460,
+        "width": 780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -80
+      ],
+      "id": "15e2c67c-b001-4c23-aa03-f34dc2d60ffd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Check leads matching criteria\n",
+        "height": 460,
+        "width": 820,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        -80
+      ],
+      "id": "136006ca-9666-4d6f-a8e0-9bc1330e7395",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Get Lead infos (first name, last name, company)\n",
+        "height": 460,
+        "width": 820,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        -80
+      ],
+      "id": "d5e30ce5-ae23-4b79-bd29-138c87ed8799",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1b7a03f7-0c3e-48d6-9591-347034ff0ae8",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        3060,
+        0
+      ],
+      "id": "1c55fee9-e8cb-4cc4-b229-3c477306d84c",
+      "name": "Webhook",
+      "webhookId": "1b7a03f7-0c3e-48d6-9591-347034ff0ae8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Structure chat inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Structure chat inputs",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Structure chat inputs",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Structure chat inputs",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Structure chat inputs": {
+      "main": [
+        [
+          {
+            "node": "Scrape Google results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Google results": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Check contact matching",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Check contact matching",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Check contact matching",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Check contact matching",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Filter matching results only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter matching results only": {
+      "main": [
+        [
+          {
+            "node": "Extract contact info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract contact info",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Extract contact info",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract contact info",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract contact info": {
+      "main": [
+        [
+          {
+            "node": "Insert contact data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check contact matching": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert contact data": {
+      "main": [
+        [
+          {
+            "node": "Get email & phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get email & phone": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Add email and phone to contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cc59db00-406a-4ec8-a900-ac03dbe9bb7d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "40cea776db30493c144764dd8e6d09fb9c1428b6eba22b14514760b0b94009aa"
+  },
+  "id": "BL3gw5VcZpYUaHUW",
+  "tags": []
+}
